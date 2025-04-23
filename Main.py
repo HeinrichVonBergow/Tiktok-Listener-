@@ -28,7 +28,7 @@ async def get_user(req: UserRequest):
             return {
                 "nickname": user.nickname,
                 "user_id": user.id,
-                "live": user.is_live,
+                "live": user.is_live
             }
     except Exception as e:
         return {"error": str(e)}
