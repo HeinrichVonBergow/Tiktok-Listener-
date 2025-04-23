@@ -1,11 +1,10 @@
-from fastapi import FastAPI, HTTPException
-from pydantic import BaseModel
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel
 from TikTokApi import TikTokApi
 
 app = FastAPI()
 
-# CORS Einstellungen für Zugriff von Vercel etc.
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -17,19 +16,19 @@ app.add_middleware(
 class UserRequest(BaseModel):
     username: str
 
-@app.post("/api/user")
-async def get_user_data(request: UserRequest):
-    try:
-        api = TikTokApi()
-        user = api.user(request.username)
-        return {
-            "nickname": user.get("user", {}).get("nickname", ""),
-            "user_id": user.get("user", {}).get("id", ""),
-            "live": "live_data" in user
-        }
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
-
 @app.get("/")
-async def root():
+def root():
     return {"message": "TikTok Listener Backend läuft"}
+
+@app.post("/api/user")
+async def get_user(req: UserRequest):
+    try:
+        async with TikTokApi() as api:
+            user = await api.user(username=req.username)
+            return {
+                "nickname": user.nickname,
+                "user_id": user.id,
+                "live": user.is_live,
+            }
+    except Exception as e:
+        return {"error": str(e)}
