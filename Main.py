@@ -1,34 +1,28 @@
-from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
+from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
-from TikTokApi import TikTokApi
+from apify_client import ApifyClient
 
 app = FastAPI()
-
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
 
 class UserRequest(BaseModel):
     username: str
 
-@app.get("/")
-def root():
-    return {"message": "TikTok Listener Backend läuft"}
-
 @app.post("/api/user")
-async def get_user(req: UserRequest):
+def get_user(req: UserRequest):
+    client = ApifyClient("apify_api_C70DLbFacqO0FAlJusY3LohKaqmSgc0xocLR")
+    run_input = {
+        "search": req.username
+    }
     try:
-        async with TikTokApi() as api:
-            user = await api.user(username=req.username)
-            return {
-                "nickname": user.nickname,
-                "user_id": user.id,
-                "live": user.is_live
-            }
+        run = client.actor("apify/tiktok-profile-scraper").call(run_input=run_input)
+        dataset_items = client.dataset(run["defaultDatasetId"]).list_items().items
+        if not dataset_items:
+            raise HTTPException(status_code=404, detail="User not found")
+        user_data = dataset_items[0]
+        return {
+            "nickname": user_data.get("nickname"),
+            "user_id": user_data.get("userId"),
+            "live": user_data.get("isLive")
+        }
     except Exception as e:
-        return {"error": str(e)}
+        raise HTTPException(status_code=500, detail=str(e))
