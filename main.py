@@ -13,9 +13,9 @@ def root():
 
 @app.post("/api/user")
 def get_user(req: UserRequest):
-    api_url = "https://api.apify.com/v2/acts/apify~tiktok-profile-scraper/run-sync-get-dataset-items"
+    api_url = "https://api.apify.com/v2/acts/dtrungtin~tiktok-scraper/run-sync-get-dataset-items"
     headers = {"Content-Type": "application/json"}
-    payload = {"search": req.username}
+    payload = {"username": req.username}
     params = {"token": "apify_api_C70DLbFacqO0FAlJusY3LohKaqmSgc0xocLR"}
 
     try:
@@ -29,7 +29,7 @@ def get_user(req: UserRequest):
         user_data = data[0]
         return {
             "nickname": user_data.get("nickname"),
-            "user_id": user_data.get("userId"),
+            "user_id": user_data.get("uniqueId"),
             "live": user_data.get("isLive", False)
         }
 
