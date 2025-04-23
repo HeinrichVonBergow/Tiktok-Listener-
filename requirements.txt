@@ -1,5 +1,4 @@
 fastapi
 uvicorn
-TikTokApi
-python-multipart
 pydantic
+TikTokApi>=7.0.0
