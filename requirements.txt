@@ -3,3 +3,4 @@ fastapi
 uvicorn
 pydantic
 TikTokApi>=7.0.0
+apify-client
